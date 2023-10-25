@@ -1,4 +1,5 @@
 const path = require("path");
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
@@ -13,6 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static file-serving middleware
 app.use(express.static(path.join(__dirname, "..", "client/dist")));
+
+app.get('/', (req, res, next) => {
+  res.send(`
+  <a href="/auth/github/login">Login with Github</a>
+  `)
+})
 
 // Check requests for a token and attach the decoded id to the request
 app.use((req, res, next) => {
