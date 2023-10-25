@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const {GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET} = process.env;
-
 const axios = require("axios");
 
 // Register a new instructor account
@@ -31,7 +30,7 @@ router.post("/register", async (req, res, next) => {
 });
 //GET auth/github/login
 router.get("/github/login", (req, res,next) => {
-  
+  const githubUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=user`;
   res.status(302).redirect(githubUrl);
 });
 
