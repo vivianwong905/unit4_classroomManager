@@ -1,16 +1,25 @@
 const router = require("express").Router();
 const db = require("../db");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+const {GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET} = process.env;
+
+const axios = require("axios");
 
 // Register a new instructor account
 router.post("/register", async (req, res, next) => {
   try {
-    const {
-      rows: [instructor],
-    } = await db.query(
-      "INSERT INTO instructor (username, password) VALUES ($1, $2) RETURNING *",
-      [req.body.username, req.body.password]
-    );
+    const { username, password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 8);
+    const instructor = await prisma.instructor.create({
+      data: {
+        username,
+        password:hashedPassword,
+      },
+    });
 
     // Create a token with the instructor id
     const token = jwt.sign({ id: instructor.id }, process.env.JWT);
@@ -23,22 +32,41 @@ router.post("/register", async (req, res, next) => {
 
 // Login to an existing instructor account
 router.post("/login", async (req, res, next) => {
-  try {
-    const {
-      rows: [instructor],
-    } = await db.query(
-      "SELECT * FROM instructor WHERE username = $1 AND password = $2",
-      [req.body.username, req.body.password]
-    );
+  const { username, password } = req.body;
 
+ // request must have both
+  if (!username || !password) {
+    next({
+      name: "MissingCredentialsError",
+      message: "Please supply both a username and password",
+    });
+  }
+
+  try {
+    const instructor = await prisma.instructor.findUnique({
+      where: {
+        username: username,
+      },
+    });
+    console.log(instructor)
     if (!instructor) {
       return res.status(401).send("Invalid login credentials.");
     }
 
-    // Create a token with the instructor id
-    const token = jwt.sign({ id: instructor.id }, process.env.JWT);
+    const hashedPassword = instructor.password;
+    const pwMatch = await bcrypt.compare(password, hashedPassword);
+    console.log(pwMatch);
 
-    res.send({ token });
+        if (pwMatch) {
+      const token = jwt.sign({ id: instructor.id }, process.env.JWT);
+      res.send({ token });
+    } else {
+      next({ 
+        name: 'IncorrectCredentialsError', 
+        message: 'Username or password is incorrect'
+      });}
+
+   
   } catch (error) {
     next(error);
   }
