@@ -29,6 +29,44 @@ router.post("/register", async (req, res, next) => {
     next(error);
   }
 });
+//GET auth/github/login
+router.get("/github/login", (req, res,next) => {
+  
+  res.status(302).redirect(githubUrl);
+});
+
+//GET auth/github/login/callback
+router.get("/github/login/callback", async(req, res,next) =>{
+  const body = {
+    client_id:GITHUB_CLIENT_ID,
+    client_secret:GITHUB_CLIENT_SECRET,
+    code:req.query.code
+  }
+  const headers = {
+    accept:'application/json',
+  }
+
+  const response = await axios.post(
+    `https://github.com/login/oauth/access_token`,
+    body,
+    {headers}
+    );
+    const result = await response.data;
+    console.log(result);
+    const accessToken = response.data.access_token;
+    if(accessToken){
+      
+      res.redirect("/auth/account?access_token="+accessToken);
+    }
+    else{
+      next({ 
+        name: 'IncorrectCredentialsError', 
+        message: 'Username or password is incorrect'
+      });
+
+    }
+   
+})
 
 // Login to an existing instructor account
 router.post("/login", async (req, res, next) => {
