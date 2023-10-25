@@ -31,7 +31,7 @@ router.get('/:id', async (req, res, next) => {
   try {
     const student = await prisma.student.findUnique({
       where: {
-        id: parseInt(req.params.id),
+        id: Number(req.params.id),
         instructorId: req.user.id,
       },
     });
@@ -47,19 +47,17 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // Create a new student 
-router.post('/', async (req, res, next) => {
+router.post("/", async (req, res, next) => {
+  const { name, cohort } = req.body;
   try {
     const student = await prisma.student.create({
       data: {
-        name: req.body.name,
-        cohort: req.body.cohort,
-        instructor: {
-          connect: {
-            id: req.user.id,
-          },
-        },
+        name,
+        cohort,
+        instructorId: req.user.id,
       },
     });
+
     res.status(201).send(student);
   } catch (error) {
     next(error);
@@ -71,7 +69,7 @@ router.put('/:id', async (req, res, next) => {
   try {
     const student = await prisma.student.update({
       where: {
-        id: parseInt(req.params.id),
+        id: Number(req.params.id),
         instructorId: req.user.id,
       },
       data: {
@@ -95,7 +93,7 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const student = await prisma.student.delete({
       where: {
-        id: parseInt(req.params.id),
+        id: Number(req.params.id),
         instructorId: req.user.id,
       },
     });
