@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { faker } = require('@faker-js/faker');
+const db = require("../db");
 
 async function seed() {
   console.log('Seeding the database.');

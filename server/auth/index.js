@@ -35,10 +35,11 @@ router.get("/github/login", (req, res,next) => {
 });
 
 //GET auth/github/login/callback
-router.get("/github/login/callback", async(req, res,next) =>{
+router.get("/github/login/callback", async(req, res, next) =>{
   const body = {
     client_id:GITHUB_CLIENT_ID,
     client_secret:GITHUB_CLIENT_SECRET,
+    //this is the auth code in the query params - sent to us by github
     code:req.query.code
   }
   const headers = {
